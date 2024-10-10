@@ -18,3 +18,7 @@ I am interested in exploring data related to...
 - How well do your parents' beliefs predict your beliefs?
 
 - Is the number of different news sources consumed by a voter predictive of their political party?
+
+## Project plan
+
+How does the news consumed by Americans impact the strength of their political views? My hypothesis is that consuming a larger number of different news sources can increase acceptance of different viewpoints, while consuming an equivalent amount of information from only one news source leads to polarization. My explanatory variable would be the number of different news sources consumed by a voter; my outcome variable would be the response to questions that measure political polarization, such as "Could you be friends with someone of the opposite party?". I would want to control for the amount of news consumed (measured by time), because people with strong political beliefs likely consume more news overall, but I predict that getting news from multiple sources could lead to a more balanced worldview. My hypothesis would be supported if there is a positive correlation between the number of news sources consumed and the acceptance of disagreeing viewpoints; my hypothesis would be disproved if there is no relation or if there is a negative correlation.
