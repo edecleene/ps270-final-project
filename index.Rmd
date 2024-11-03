@@ -43,6 +43,8 @@ polviews_vs_diff %>% ggplot(mapping=aes(x=polviews, y=diff)) +
   geom_smooth(method="lm", se=FALSE) +
   labs(x="Political Views", y="Present Income minus Childhood Family Income", title="How Are Your Political Views Related to Your Income vs. Your Parents' Income?") +
   scale_x_continuous(breaks=c(2, 6), labels=c("More Conservative", "More Liberal")) +
-  scale_y_continuous(breaks=c(8.1, 8.5), labels=c("Higher Income in Childhood", "Higher Income Now"))
+  scale_y_continuous(breaks=c(8.1, 8.5), labels=c("Less Income than Parents", "More Income than Parents"))
 
 ```
+
+This plot suggests that there is a positive correlation between liberal beliefs and income relative to your parents'. 
