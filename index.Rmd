@@ -35,16 +35,35 @@ gss_2018 = gss_get_yr(year = 2018) %>%
 
 ## Initial plot
 
-```{r fig.width=10, fig.height=8}
+```{r fig.width=9, fig.height=7}
 polviews_vs_diff = gss_2018 %>% group_by(polviews) %>% summarize(me=mean(income, na.rm=TRUE), par=mean(incom16, na.rm=TRUE), diff=me-par) %>% head(7)
 
 polviews_vs_diff %>% ggplot(mapping=aes(x=polviews, y=diff)) +
   geom_point() +
   geom_smooth(method="lm", se=FALSE) +
-  labs(x="Political Views", y="Present Income minus Childhood Family Income", title="How Are Your Political Views Related to Your Income vs. Your Parents' Income?") +
+  ggtitle("How Are Your Political Views Related to\nYour Income vs. Your Parents' Income?") +
+  labs(x="Political Views", y="Present Income minus Childhood Family Income") +
   scale_x_continuous(breaks=c(2, 6), labels=c("More Conservative", "More Liberal")) +
-  scale_y_continuous(breaks=c(8.1, 8.5), labels=c("Less Income than Parents", "More Income than Parents"))
-
+  scale_y_continuous(breaks=c(8.1, 8.5), labels=c("   Less Income\nthan Parents", "   More Income\nthan Parents")) +
+  theme_light() +
+  theme(
+    axis.text.x = element_text(size=18), 
+    axis.title.x = element_text(size=18),
+    text = element_text(size=18)
+  ) +
+  annotate("text", x=6.4, y=8, label="Sourced from the General\nSocial Survey (2018)")
 ```
 
 This plot suggests that there is a positive correlation between liberal beliefs and income relative to your parents'. 
+
+```{r}
+self_vs_diff = gss_2018 %>% 
+  mutate(`Income Relative to Parents` = income-incom16, `Income` = income) %>% 
+  lm(formula=polviews ~ `Income Relative to Parents` + `Income`) 
+
+summary(self_vs_diff)$coefficients %>% 
+  knitr::kable()
+```
+This linear model provides further evidence for the relationship. When considering both income relative to parents, and income without comparison, we can see that income relative to parents is much more statistically significant in predicting political views than income itself ($p < 0.1$ vs $p > 0.3$). 
+
+These findings support my hypothesis. There is a positive correlation between success (measured as income) compared to your parents and progressive policy affiliation. It cannot be definitively concluded that this is related to an underlying variable of whether one believes the country is on the right/wrong track, but that would be a reasonable way to potentially explain the results.
