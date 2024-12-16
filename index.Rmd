@@ -1,64 +1,128 @@
 ---
 title: "PS270 Final Project"
 author: "Ellie DeCleene"
-description: "My final project"
+description: "Political affiliation and success relative to one's parents"
 output:
   distill::distill_article:
     self_contained: false
 ---
 
-```{r include=FALSE}
+## Setup
+
+```{r Loading packages}
 library(tidyverse)
 library(gssr)
+library(modelsummary)
 ```
 
-## Project thoughts
 
-I am interested in exploring data related to...
- 
-- How do people's political beliefs change over time? Are people more likely to agree with Democrats when they're young and change their minds as they age? Or do people generally stay in the same party as they age, and the Republican share of the vote increases with age because previous non-voters begin to vote?
+## Introduction
 
-- How well do your parents' beliefs predict your beliefs?
+What is the impact of an individual's success relative to their parents and their political views? My hypothesis is that people who have less success than their parents are more likely to believe that the country is on the wrong track and be more conservative, while people who have more success than their parents are more likely to believe that the country is on the right track and be more progressive. My explanatory variable would be whether the individual has more success than their parents, measured by income; my outcome variable would be the response to questions such as "Is the country on the right track?" and overall political party affiliation. I will control for absolute income, because I am more interested in relative income. My hypothesis would be supported if there is a positive correlation between success relative to your parents and progressive beliefs; my hypothesis would be disproved if there is no relation or if there is a negative correlation.
 
-- Is the number of different news sources consumed by a voter predictive of their political party?
 
-## Project plan
 
-How are people's parents impact their political views? My hypothesis is that people who have less success than their parents are more likely to believe that the country is on the wrong track and be more conservative, while people who have more success than their parents are more likely to believe that the country is on the right track and be more progressive. My explanatory variable would be whether the individual has more success than their parents, measured by income, occupation, education; my outcome variable would be the response to questions such as "Is the country on the right track?" and overall political party affiliation. I would potentially want to control for income level, because I am curious more about comparative income than absolute income. My hypothesis would be supported if there is a positive correlation between success relative to your parents and progressive beliefs; my hypothesis would be disproved if there is no relation or if there is a negative correlation.
+## Data analysis
 
-## Loading data
+### Loading data
 
-```{r}
+```{r Selecting data}
 gss_2018 = gss_get_yr(year = 2018) %>% 
-  select(prestg10, sppres10, papres10, mapres10, codeg, degree, padeg, madeg, spdeg, res16, incom16, income, rincome, income16, pres16, polviews, happy, life, helpful, fair, trust, satjob, rank, satfin, finrela, parsol, unhappy, cntctpar)
+  select(
+    incom16, 
+    income, 
+    polviews, 
+    happy, 
+    helpful, 
+    satfin
+  )
+```
+A number of columns that could be used to inspect the hypothesis are selected. 
+
+Name                 Description
+-------------------- -------------------------------------------------------------------------------------
+`incom16`            Respondent's memory of family income at age 16, on a scale from 1 to 5. 1 = Much less than average, 5 = Much more than average
+`income`             Respondent current income, on a scale from 1 to 12. Each number represents a range of possible incomes; 1 = \$5,000 or less, 12 = \$25,000 or more
+`polviews`           Respondent's political views on a scale from 1 to 7. 1 = Very conservative, 7 = Very liberal      
+`happy`              Respondent's happiness. 1 = Very happy, 2 = Pretty happy, 3 = Not too happy
+`helpful`            Respondent's belief in the helpfulness of other people. 1 = Try to be helpful, 2 = Looking out for themselves, 3 = Depends
+`satfin`             Respondent's satisfaction with their financial situation. 1 = Pretty well satisfied, 2 = More or less satisfied, 3 = Not satisfied at all
+
+
+
+### Plot
+
+```{r Tidying data, fig.width=12, fig.height=7}
+polviews_vs_diff = gss_2018 %>% 
+  group_by(polviews) %>% 
+  summarize(
+    me=mean(income, na.rm=TRUE), 
+    par=mean(incom16, na.rm=TRUE), 
+    diff=me-par
+  ) 
+
+polviews_vs_diff %>%
+  head(6) %>% 
+  knitr::kable(
+  col.names = c(
+    "Political views", 
+    "Individual's income (1-12)", 
+    "Childhood family income (1-5)", 
+    "Income difference index"
+    )
+  )
 ```
 
-## Initial plot
+From this table, it seems that the hypothesis has some promise. The income difference index generally increases as political views get more liberal, meaning that liberal respondents have a higher income relative to their parents' income when they were children. 
 
-```{r fig.width=9, fig.height=7}
-polviews_vs_diff = gss_2018 %>% group_by(polviews) %>% summarize(me=mean(income, na.rm=TRUE), par=mean(incom16, na.rm=TRUE), diff=me-par) %>% head(7)
-
+```{r Plotting data, fig.width=9, fig.height=7}
 polviews_vs_diff %>% ggplot(mapping=aes(x=polviews, y=diff)) +
   geom_point() +
-  geom_smooth(method="lm", se=FALSE) +
+  geom_smooth(
+    method="lm", 
+    se=FALSE
+  ) +
   ggtitle("How Are Your Political Views Related to\nYour Income vs. Your Parents' Income?") +
-  labs(x="Political Views", y="Present Income minus Childhood Family Income") +
-  scale_x_continuous(breaks=c(2, 6), labels=c("More Conservative", "More Liberal")) +
-  scale_y_continuous(breaks=c(8.1, 8.5), labels=c("   Less Income\nthan Parents", "   More Income\nthan Parents")) +
+  labs(
+    x="Political Views", 
+    y="Present Income minus Childhood Family Income"
+  ) +
+  scale_x_continuous(
+    breaks=c(2, 6), 
+    labels=c("More Conservative", "More Liberal"),
+  ) +
+  scale_y_continuous(
+    breaks=c(8.1, 8.5), 
+    labels=c("   Less Income\nthan Parents", "   More Income\nthan Parents"),
+    limits = c(8, 8.6)
+  ) +
   theme_light() +
   theme(
     axis.text.x = element_text(size=18), 
     axis.title.x = element_text(size=18),
     text = element_text(size=18)
   ) +
-  annotate("text", x=6.4, y=8, label="Sourced from the General\nSocial Survey (2018)")
+  annotate(
+    "text", 
+    x=6.4, 
+    y=8, 
+    label="Sourced from the General\nSocial Survey (2018)"
+  )
 ```
 
 This plot suggests that there is a positive correlation between liberal beliefs and income relative to your parents'. 
 
-```{r}
+Liberal beliefs are measured by association on a scale between 1-7, with 1 being the most conservative and 7 being the most liberal. Income relative to your parents is calculated as the difference between the GSS variable `incom16` (your family income at age 16, measured on a scale from 1-5, where 1 is below average and 5 is far above average), and `income` (measured on a scale from 1-12, where each number represents a range of values. 1 represents "Under $\$1,000$, and 12 represents "$\$25,000$ or more). 
+
+
+## Results
+
+```{r Linear regression}
 self_vs_diff = gss_2018 %>% 
-  mutate(`Income Relative to Parents` = income-incom16, `Income` = income) %>% 
+  mutate(
+    `Income Relative to Parents` = income-incom16,
+    `Income` = income
+  ) %>% 
   lm(formula=polviews ~ `Income Relative to Parents` + `Income`) 
 
 summary(self_vs_diff)$coefficients %>% 
@@ -66,4 +130,45 @@ summary(self_vs_diff)$coefficients %>%
 ```
 This linear model provides further evidence for the relationship. When considering both income relative to parents, and income without comparison, we can see that income relative to parents is much more statistically significant in predicting political views than income itself ($p < 0.1$ vs $p > 0.3$). 
 
+The coefficient associated with income relative to parents was 0.065, meaning that an increase of 1 in the parent-relative-income index is associated with an increase of 0.065 on a political views scale (1-7, with 1 being conservative and 7 being liberal). 
+
+We can explore how this parent-relative-income index predicts other variables outside of political views, such as happiness and faith in others.
+
+```{r Bonus linear regression (Happiness)}
+happy = gss_2018 %>% 
+  mutate(
+    Happiness = happy,
+    `Income Relative to Parents` = income-incom16
+  ) %>% 
+  lm(formula = Happiness ~ `Income Relative to Parents`)
+
+summary(happy)$coefficients %>% 
+  knitr::kable()
+```
+Happiness is coded as 1 = Very happy, 2 = Pretty happy, and 3 = Not too happy, so having a higher income relative to parents is associated with greater happiness.
+
+```{r Bonus linear regression (Trust in others)}
+helpful = gss_2018 %>% 
+  mutate(
+    `Income Relative to Parents` = income-incom16
+  ) %>% 
+  lm(formula = helpful ~ `Income Relative to Parents`)
+
+summary(helpful)$coefficients %>% 
+  knitr::kable()
+```
+
+Again, with a small p-value, we can see that there is a significant relationship between trust in others and income relative to one's parents. Here, the variable `helpful` is 1 if the respondent believes that people usually try to be helpful, and 2 if the respondent believes that people are usually looking out for themselves, so having greater income relative to one's parents is associated with more trust in others.
+
+## Conclusion
+
 These findings support my hypothesis. There is a positive correlation between success (measured as income) compared to your parents and progressive policy affiliation. It cannot be definitively concluded that this is related to an underlying variable of whether one believes the country is on the right/wrong track, but that would be a reasonable way to potentially explain the results.
+
+The coefficient for relative income was $0.065$, so we can note that this would not enable us to reject the null hypothesis at the 95\% confidence level. Additionally, because childhood income was self-reported relative to what the respondent believed to be an average income, the measurement of income compared to an individual's parents is imprecise, and it would be interesting to repeat this analysis with a more precise measurement if I had more time and money.
+
+
+## Code printout
+
+```{r print-code, ref.label=knitr::all_labels(), echo = TRUE, eval=FALSE}
+
+```
